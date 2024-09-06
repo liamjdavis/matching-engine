@@ -11,8 +11,8 @@ def calculate_interests_goals_scores(interest_weight=5.0):
     total_goals = 5  # Number of goal fields
 
     # Calculate scores for each pair of user profiles
-    for i in range(len(user_profiles)):
-        for j in range(len(user_profiles)):
+    for i, user1 in enumerate(user_profiles):
+        for j, user2 in enumerate(user_profiles):
             if i != j:
                 # Get user profiles
                 user1 = user_profiles[i]
@@ -43,8 +43,5 @@ def calculate_interests_goals_scores(interest_weight=5.0):
                 # Combine scores with interest_weight applied to interest score
                 similarity_score = goal_score + (interest_weight * interest_score)
                 similarity_scores[i][j] = similarity_score
-
-                # Debug information
-                print(f"User {i} and User {j} - Similarity Score: {similarity_score}")
 
     return similarity_scores

@@ -1,33 +1,46 @@
 # Importing necessary libraries
 import pandas as pd
+from matching_algo.models import UserProfile
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-# Step 1: Load CSV data into a DataFrame
-csv_file_path = 'form_responses.csv'  # Replace with the path to your CSV file
-df = pd.read_csv(csv_file_path)
+def calculate_cosine_similarity():
+    # load users from db
+    user_profiles = UserProfile.objects.all()
+    cosine_similarities = [[0 for _ in range(len(user_profiles))] for _ in range(len(user_profiles))]
 
-df.columns = ['date', 'email', 'name', 'classYear', 'major1', 'major2', 'major3', 'interest', 'haveIdea','idea','stage','role','goals','addInfo','haveTeam','teamRegistered','teamEmail']
-
-# Step 2: Specify the columns you want to use for similarity calculation
-columns_to_use = ['major1', 'major2', 'major3','idea','addInfo']  # Replace with your desired columns
-
-# Step 3: Extract the specified columns and concatenate their values for each row
-row_texts = df[columns_to_use].astype(str).agg(' '.join, axis=1)
-
-# Step 4: Initialize the TF-IDF Vectorizer
-vectorizer = TfidfVectorizer()
-
-# Step 5: Fit and transform the selected column data
-tfidf_matrix = vectorizer.fit_transform(row_texts)
-
-# Step 6: Compute cosine similarity between all rows based on the selected columns
-cosine_sim_matrix = cosine_similarity(tfidf_matrix)
-
-# Step 7: Output cosine similarity matrix between all rows
-# The matrix shows the similarity between every pair of rows
-similarity_df = pd.DataFrame(cosine_sim_matrix)
-
-# Display the cosine similarity matrix
-print("Cosine Similarity Between Rows Using Selected Columns:")
-print(similarity_df)
+    # iterate over ever user pair
+    for i, user1 in enumerate(user_profiles):
+        for j, user2 in enumerate(user_profiles):
+            if i != j:
+                # extract user data
+                user1_majors = user1.majors
+                user2_majors = user2.majors
+                
+                user1_addInfo = user1.add_info
+                user2_addInfo = user2.add_info
+                
+                user1_idea = user1.idea
+                user2_idea = user2.idea
+                
+                # format profiles for users
+                user1_profile = {
+                    'majors': user1_majors,
+                    'addInfo': user1_addInfo,
+                    'idea': user1_idea,
+                }
+                
+                user2_profile = {
+                    'majors': user2_majors,
+                    'addInfo': user2_addInfo,
+                    'idea': user2_idea,
+                }
+                
+                # initialize vectorizer
+                vectorizer = TfidfVectorizer()
+                
+                # fit and transform the user data
+                tfidf_matrix = vectorizer.fit_transform([str(user1_profile), str(user2_profile)])  # Transform the texts into TF-IDF matrix
+                cosine_similarities[i][j] = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0] # Return the cosine similarity score
+    
+    return cosine_similarities
