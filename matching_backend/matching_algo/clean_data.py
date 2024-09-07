@@ -22,7 +22,6 @@ def load_csv(file_path):
     """Load CSV file."""
     pd.set_option('display.max_columns', None)
     df = pd.read_csv(file_path)
-    print(df)
     return df
 
 def check_columns(df, expected_columns):
@@ -118,4 +117,3 @@ def clean_and_create_users(file_path):
     
     # Print the filtered and processed dataframe
     pd.set_option('display.max_columns', None)
-    print(df_filtered.head())
