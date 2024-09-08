@@ -14,6 +14,5 @@ def calculate_final_scores():
     for i in range(len(cosine_similarities)):
         for j in range(len(cosine_similarities[i])):
             final_scores[i][j] = cosine_similarities[i][j] + matching_similarities[i][j]
-            print(final_scores[i][j])
     
-    return final_scores
+    return final_scores, user_profiles
