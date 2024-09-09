@@ -6,9 +6,13 @@ def calculate_final_scores():
     user_profiles = UserProfile.objects.all()
     final_scores = [[0 for _ in range(len(user_profiles))] for _ in range(len(user_profiles))]
     
-    # Calculate cosine similarity scores
-    cosine_similarities = calculate_cosine_similarity()
+    # Calculate matching similarity scores
+    print("calculating matching similarities")
     matching_similarities = calculate_interests_goals_scores()
+    
+    # calculatie cosine similarity scores
+    print("calculating cosine similarities")
+    cosine_similarities = calculate_cosine_similarity()
     
     # combine matching similarities with cosine similarities
     for i in range(len(cosine_similarities)):

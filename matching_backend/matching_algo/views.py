@@ -21,6 +21,14 @@ def index(request):
         # Now form teams after the users are created
         teams = form_teams()
         
+        # Print teams by user name
+        print("\nGenerated Teams:")
+        for i, team in enumerate(teams, 1):
+            print(f"Team {i}:")
+            for user in team:
+                print(f"  - {user.name}")
+            print()  # Add a blank line between teams for better readability
+        
         # Collect the team information
         team_output = []
         for team in teams:

@@ -1,18 +1,20 @@
-import random
 from matching_algo.calculate_final_scores import calculate_final_scores
 from django.core.management import call_command
 
 def form_teams():
+    print("calculating final scores")
     final_scores, user_profiles = calculate_final_scores()
     teams = []
     used_users = set()
+
+    print("generating teams")
 
     # Get lists of users by role
     business_users = [i for i, user in enumerate(user_profiles) if user.role_business and i not in used_users]
     engineer_users = [i for i, user in enumerate(user_profiles) if user.role_engineer and i not in used_users]
     finance_users = [i for i, user in enumerate(user_profiles) if user.role_finance and i not in used_users]
 
-    # Form teams starting with business users
+    # Form initial teams
     for business_user in business_users:
         if business_user in used_users:
             continue
@@ -39,22 +41,61 @@ def form_teams():
     # Handle leftover users
     leftover_users = [i for i in range(len(user_profiles)) if i not in used_users]
 
-    # Randomly shuffle leftover users before forming teams
-    random.shuffle(leftover_users)
+    # Distribute leftover users to teams with less than 3 members
+    for team in teams:
+        while len(team) < 3 and leftover_users:
+            best_user = max(leftover_users, key=lambda x: sum(final_scores[x][member] for member in team) / len(team))
+            team.append(best_user)
+            leftover_users.remove(best_user)
+            used_users.add(best_user)
 
-    # Form teams of 3 from leftover users
-    while len(leftover_users) >= 3:
-        team = leftover_users[:3]
-        teams.append(team)
-        leftover_users = leftover_users[3:]
+    # Create new teams with leftover users
+    while leftover_users:
+        new_team = []
+        for _ in range(3):
+            if leftover_users:
+                new_team.append(leftover_users.pop(0))
+        teams.append(new_team)
 
-    # If there are 1 or 2 users left, add them to the smallest existing teams
-    if leftover_users:
-        sorted_teams = sorted(teams, key=len)
-        for user in leftover_users:
-            smallest_team = sorted_teams[0]
-            smallest_team.append(user)
-            sorted_teams = sorted(sorted_teams, key=len)
+    # Ensure teams have only 3 or 4 members by redistributing users
+    small_teams = [team for team in teams if len(team) < 3]
+    teams = [team for team in teams if len(team) >= 3]
+
+    while small_teams:
+        team = small_teams.pop(0)
+        if len(team) == 2:
+            if small_teams:
+                next_team = small_teams.pop(0)
+                team += next_team
+            if len(team) == 4:
+                teams.append(team)
+            else:
+                small_teams.append(team)
+        elif len(team) == 1:
+            if teams:
+                # Add single user to a team of 3 to make it a team of 4
+                teams.sort(key=len)
+                smallest_team = teams[0]
+                if len(smallest_team) == 3:
+                    smallest_team.append(team[0])
+                else:
+                    small_teams.append(team)
+            else:
+                small_teams.append(team)
+
+    # Combine remaining small teams to make sure only 3 or 4 member teams remain
+    while len(small_teams) > 0:
+        current_team = small_teams.pop(0)
+        if small_teams:
+            next_team = small_teams.pop(0)
+            current_team += next_team
+        if len(current_team) <= 4:
+            teams.append(current_team)
+        else:
+            teams.append(current_team[:3])
+            small_teams.append(current_team[3:])
+
+    print("teams generated")
 
     # Flush database
     try:
@@ -65,4 +106,6 @@ def form_teams():
         print(e)
 
     # Convert user indices to UserProfile objects
-    return [[user_profiles[i] for i in team] for team in teams]
+    final_teams = [[user_profiles[i] for i in team] for team in teams]
+
+    return final_teams
