@@ -6,7 +6,7 @@ def form_teams():
     final_scores, user_profiles = calculate_final_scores()
     teams = []
     used_users = set()
-    
+
     print("generating teams")
 
     # Get lists of users by role
@@ -41,48 +41,62 @@ def form_teams():
     # Handle leftover users
     leftover_users = [i for i in range(len(user_profiles)) if i not in used_users]
 
-    # Distribute leftover users to existing teams or create new teams
-    while leftover_users:
-        if len(leftover_users) >= 3:
-            new_team = leftover_users[:3]
-            teams.append(new_team)
-            leftover_users = leftover_users[3:]
-        else:
-            # Add remaining users to existing teams based on highest average similarity
-            for user in leftover_users:
-                best_team = max(teams, key=lambda team: sum(final_scores[user][member] for member in team) / len(team))
-                best_team.append(user)
-            leftover_users = []
+    # Distribute leftover users to teams with less than 3 members
+    for team in teams:
+        while len(team) < 3 and leftover_users:
+            best_user = max(leftover_users, key=lambda x: sum(final_scores[x][member] for member in team) / len(team))
+            team.append(best_user)
+            leftover_users.remove(best_user)
+            used_users.add(best_user)
 
-    # Ensure each team has at least 3 members
-    while any(len(team) < 3 for team in teams):
-        teams.sort(key=len)  # Sort teams by size, smallest first
-        small_team = teams[0]
-        large_teams = [team for team in teams if len(team) > 3]
-        
-        if not large_teams:
-            # If no team has more than 3 members, we can't redistribute
-            break
-        
-        # Find the best user to move from a large team to the small team
-        best_user = None
-        best_score = float('-inf')
-        best_source_team = None
-        
-        for large_team in large_teams:
-            for user in large_team:
-                score = sum(final_scores[user][member] for member in small_team) / len(small_team)
-                if score > best_score:
-                    best_score = score
-                    best_user = user
-                    best_source_team = large_team
-        
-        # Move the best user to the small team
-        best_source_team.remove(best_user)
-        small_team.append(best_user)
+    # Create new teams with leftover users
+    while leftover_users:
+        new_team = []
+        for _ in range(3):
+            if leftover_users:
+                new_team.append(leftover_users.pop(0))
+        teams.append(new_team)
+
+    # Ensure teams have only 3 or 4 members by redistributing users
+    small_teams = [team for team in teams if len(team) < 3]
+    teams = [team for team in teams if len(team) >= 3]
+
+    while small_teams:
+        team = small_teams.pop(0)
+        if len(team) == 2:
+            if small_teams:
+                next_team = small_teams.pop(0)
+                team += next_team
+            if len(team) == 4:
+                teams.append(team)
+            else:
+                small_teams.append(team)
+        elif len(team) == 1:
+            if teams:
+                # Add single user to a team of 3 to make it a team of 4
+                teams.sort(key=len)
+                smallest_team = teams[0]
+                if len(smallest_team) == 3:
+                    smallest_team.append(team[0])
+                else:
+                    small_teams.append(team)
+            else:
+                small_teams.append(team)
+
+    # Combine remaining small teams to make sure only 3 or 4 member teams remain
+    while len(small_teams) > 0:
+        current_team = small_teams.pop(0)
+        if small_teams:
+            next_team = small_teams.pop(0)
+            current_team += next_team
+        if len(current_team) <= 4:
+            teams.append(current_team)
+        else:
+            teams.append(current_team[:3])
+            small_teams.append(current_team[3:])
 
     print("teams generated")
-    
+
     # Flush database
     try:
         call_command('flush', interactive=False)
@@ -93,13 +107,5 @@ def form_teams():
 
     # Convert user indices to UserProfile objects
     final_teams = [[user_profiles[i] for i in team] for team in teams]
-
-    # Print teams by user name
-    print("\nGenerated Teams:")
-    for i, team in enumerate(final_teams, 1):
-        print(f"Team {i}:")
-        for user in team:
-            print(f"  - {user.name}")
-        print()  # Add a blank line between teams for better readability
 
     return final_teams
