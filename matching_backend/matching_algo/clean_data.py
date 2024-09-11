@@ -6,7 +6,7 @@ from matching_algo.models import UserProfile
 # Define the expected columns
 expected_columns = [
     'Timestamp', 'Email Address', 'Full Name', 'Class Year', 'Major', 'Additional Major 1', 
-    'Additional Major 2', 'Domains of Interest', 'Do you have an idea big or small?',
+    'Additional Major 2', 'Domains of Interest', 'Do you have an idea (big or small)?',
     'What is your idea?', 'What stage are you at?', 'What role are you interested in taking on a team?',
     'What are your goals for the Lab?', 'Provide any additional information about yourself.',
     'Do you already have a team?', 'Has your team been registered?',
