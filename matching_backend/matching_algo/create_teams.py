@@ -1,9 +1,12 @@
 from matching_algo.calculate_final_scores import calculate_final_scores
+from matching_algo.models import UserProfile
 from django.core.management import call_command
 
-def form_teams():
+user_profiles = UserProfile.objects.all()
+
+def form_teams(user_profiles):
     print("calculating final scores")
-    final_scores, user_profiles = calculate_final_scores()
+    final_scores, user_profiles = calculate_final_scores(user_profiles)
     teams = []
     used_users = set()
 
