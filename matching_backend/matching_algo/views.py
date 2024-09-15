@@ -19,7 +19,8 @@ def index(request):
         clean_and_create_users(file_path)
         
         # Now form teams after the users are created
-        teams = form_teams()
+        user_profiles = UserProfile.objects.all()
+        teams = form_teams(user_profiles)
         
         # Print teams by user name
         print("\nGenerated Teams:")
