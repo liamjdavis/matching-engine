@@ -4,9 +4,9 @@ from matching_algo.models import UserProfile
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-def calculate_cosine_similarity():  
+def calculate_cosine_similarity(user_profiles):  
     # load users from db
-    user_profiles = UserProfile.objects.all()
+    
     cosine_similarities = [[0 for _ in range(len(user_profiles))] for _ in range(len(user_profiles))]
 
     # iterate over ever user pair

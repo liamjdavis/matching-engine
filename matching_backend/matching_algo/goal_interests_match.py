@@ -1,7 +1,7 @@
 from matching_algo.models import UserProfile
 
-def calculate_interests_goals_scores(interest_weight=5.0):
-    user_profiles = UserProfile.objects.all()
+def calculate_interests_goals_scores(user_profiles, interest_weight=0.5):
+    
 
     # Define 2D matrix for all possible pairs of user profiles
     similarity_scores = [[0 for _ in range(len(user_profiles))] for _ in range(len(user_profiles))]
