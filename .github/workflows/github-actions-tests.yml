@@ -5,9 +5,15 @@ on:
   push:
     branches:
       - master
+      - main
+      - '*/*'
+      - '*'
   pull_request:
     branches:
       - master
+      - main
+      - '*/*'
+      - '*'
 
 # What to do when the action is triggered
 jobs:
@@ -19,11 +25,11 @@ jobs:
       # Checkout the GitHub repo
       - uses: actions/checkout@matching-engine
 
-      # Install Python 3.8
-      - name: Set up Python 3.8
+      # Install Python 3.10
+      - name: Set up Python 3.10
         uses: actions/setup-python@matching-engine
         with:
-          python-version: "3.8"
+          python-version: "3.10"
 
       # Pip install project dependencies
       - name: Install dependencies
