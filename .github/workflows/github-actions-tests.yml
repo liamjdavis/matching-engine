@@ -20,7 +20,7 @@ jobs:
   # A job called 'build' - arbitrary
   build:
     # Run on a Ubuntu VM
-    runs-on: self-hosted
+    runs-on: macos-latest
     steps:
       # Checkout the GitHub repo
       - uses: actions/checkout@matching-engine
