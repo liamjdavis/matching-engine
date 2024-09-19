@@ -19,7 +19,7 @@ on:
 jobs:
   # A job called 'build' - arbitrary
   build:
-    # Run on a Ubuntu VM
+    # Run on a MACOS VM
     runs-on: macos-latest
     steps:
       # Checkout the GitHub repo
