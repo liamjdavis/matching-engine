@@ -23,11 +23,11 @@ jobs:
     runs-on: macos-latest
     steps:
       # Checkout the GitHub repo
-      - uses: actions/checkout@matching-engine
+      - uses: actions/checkout@v2
 
       # Install Python 3.10
       - name: Set up Python 3.10
-        uses: actions/setup-python@matching-engine
+        uses: actions/setup-python@v2
         with:
           python-version: "3.10"
 
