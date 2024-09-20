@@ -44,59 +44,40 @@ def form_teams(user_profiles):
     # Handle leftover users
     leftover_users = [i for i in range(len(user_profiles)) if i not in used_users]
 
-    # Distribute leftover users to teams with less than 3 members
-    for team in teams:
-        while len(team) < 3 and leftover_users:
-            best_user = max(leftover_users, key=lambda x: sum(final_scores[x][member] for member in team) / len(team))
-            team.append(best_user)
-            leftover_users.remove(best_user)
-            used_users.add(best_user)
-
-    # Create new teams with leftover users
-    while leftover_users:
-        new_team = []
-        for _ in range(3):
-            if leftover_users:
-                new_team.append(leftover_users.pop(0))
+    # Create teams of 3 from leftover users
+    while len(leftover_users) >= 3:
+        new_team = leftover_users[:3]
         teams.append(new_team)
+        leftover_users = leftover_users[3:]
 
-    # Ensure teams have only 3 or 4 members by redistributing users
-    small_teams = [team for team in teams if len(team) < 3]
-    teams = [team for team in teams if len(team) >= 3]
+    # Handle remaining users
+    if leftover_users:
+        if len(leftover_users) == 1:
+            # If only one user is left, add them to the last team
+            teams[-1].append(leftover_users[0])
+        else:  # len(leftover_users) == 2
+            # If two users are left, create a new team
+            teams.append(leftover_users)
 
-    while small_teams:
-        team = small_teams.pop(0)
-        if len(team) == 2:
-            if small_teams:
-                next_team = small_teams.pop(0)
-                team += next_team
-            if len(team) == 4:
-                teams.append(team)
-            else:
-                small_teams.append(team)
-        elif len(team) == 1:
-            if teams:
-                # Add single user to a team of 3 to make it a team of 4
-                teams.sort(key=len)
-                smallest_team = teams[0]
-                if len(smallest_team) == 3:
-                    smallest_team.append(team[0])
-                else:
-                    small_teams.append(team)
-            else:
-                small_teams.append(team)
+    # Ensure all teams have at least 2 members
+    single_member_teams = [team for team in teams if len(team) == 1]
+    multi_member_teams = [team for team in teams if len(team) > 1]
 
-    # Combine remaining small teams to make sure only 3 or 4 member teams remain
-    while len(small_teams) > 0:
-        current_team = small_teams.pop(0)
-        if small_teams:
-            next_team = small_teams.pop(0)
-            current_team += next_team
-        if len(current_team) <= 4:
-            teams.append(current_team)
+    while single_member_teams:
+        if len(single_member_teams) >= 2:
+            # Combine two single-member teams
+            new_team = single_member_teams.pop(0) + single_member_teams.pop(0)
+            multi_member_teams.append(new_team)
         else:
-            teams.append(current_team[:3])
-            small_teams.append(current_team[3:])
+            # Add the last single member to a team of 2 if possible, otherwise to a team of 3
+            single_member = single_member_teams.pop(0)[0]
+            two_member_teams = [team for team in multi_member_teams if len(team) == 2]
+            if two_member_teams:
+                two_member_teams[0].append(single_member)
+            else:
+                multi_member_teams[0].append(single_member)
+
+    teams = multi_member_teams
 
     print("teams generated")
 
